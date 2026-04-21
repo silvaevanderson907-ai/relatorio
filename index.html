@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Controle de Vendas - Carros</title>
+  <link rel="icon" type="image/jpeg" href="../imagens/logo.jpeg">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="site-header">
+    <div class="site-brand">
+      <!-- logo image with fallback to inline SVG -->
+      <img src="../imagens/toyota-logo.png" alt="Toyota" class="logo" id="logo-img" onerror="this.style.display='none';document.getElementById('logo-fallback').style.display='flex'">
+      <div id="logo-fallback" style="display:none;align-items:center">
+        <!-- fallback inline SVG -->
+        <svg class="logo" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 40" role="img" aria-label="logo">
+          <rect width="120" height="40" fill="none"/>
+          <g fill="none" stroke="#b30000" stroke-width="2">
+            <path d="M6 26c4-8 14-12 26-12s22 4 28 12h18c3 0 6-3 8-6 2 3 5 6 8 6h6v4H6v-4z" fill="rgba(179,0,0,0.06)"/>
+            <circle cx="30" cy="28" r="4" fill="#b30000"/>
+            <circle cx="68" cy="28" r="4" fill="#b30000"/>
+          </g>
+        </svg>
+      </div>
+    </div>
+  </header>
+  <main class="container">
+
+    <section class="form-section">
+      <h2>Registrar venda</h2>
+      <form id="sale-form">
+        <label>Data
+          <input type="date" id="sale-date" required>
+        </label>
+        <label>Modelo
+          <input type="text" id="sale-model" placeholder="Ex: Toyota Corolla" required>
+        </label>
+        <label>Preço (R$)
+          <input type="text" id="sale-price" step="0.01" min="0" required>
+        </label>
+
+        <!-- opções extras colocadas abaixo do preço (BDC / Captação / Placa premiada) -->
+        <div class="inline-group">
+          <label>BDC
+            <select id="sale-bdc" class="select">
+              <option value="Não">Não</option>
+              <option value="Sim">Sim</option>
+            </select>
+          </label>
+          <label>Captação
+            <select id="sale-captacao" class="select">
+              <option value="Não">Não</option>
+              <option value="Sim">Sim</option>
+            </select>
+          </label>
+          <label>Placa premiada
+            <select id="sale-placa" class="select">
+              <option value="Não">Não</option>
+              <option value="Sim">Sim</option>
+            </select>
+          </label>
+        </div>
+
+        <label>Quantidade
+          <input type="number" id="sale-qty" value="1" min="1" required>
+        </label>
+        <label>Vendedor
+          <input type="text" id="sale-seller" placeholder="Nome" required>
+        </label>
+        <div class="actions">
+          <button type="submit" class="btn">Registrar</button>
+          <button type="button" id="clear-all" class="btn btn--muted">Limpar tudo</button>
+        </div>
+      </form>
+    </section>
+
+    <section class="report-section">
+      <h2>Relatório mensal</h2>
+      <label>Escolher mês
+        <input type="month" id="report-month">
+      </label>
+      <div class="summary">
+        <p>Total de vendas: <strong id="summary-count">0</strong> unidades</p>
+        <p>Receita total: R$ <strong id="summary-total">0,00</strong></p>
+        <p>Media por venda: R$ <strong id="summary-avg">0,00</strong></p>
+      </div>
+
+      <div class="table-wrap">
+        <table id="sales-table">
+          <thead>
+            <tr><th>Data</th><th>Modelo</th><th>Preço (R$)</th><th>Qtde</th><th>BDC</th><th>Captação</th><th>Placa premiada</th><th>Vendedor</th><th>Total</th><th></th></tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="footer-brand">
+      <img src="../imagens/toyota-logo.png" alt="Toyota" class="logo footer-logo">
+      <div class="brand-text-footer">
+        <h2>Concessionária — Controle de Vendas</h2>
+        <p class="tagline">Relatório mensal</p>
+      </div>
+    </div>
+    <p class="muted">&copy; <span id="year"></span> Concessionária. Todos os direitos reservados.</p>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>

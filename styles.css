@@ -1,3 +1,4 @@
+/* Reset para estado anterior — manter apenas variáveis e estilos básicos */
 :root{
   --bg: #ffffff;
   --card: #ffffff;
@@ -12,7 +13,6 @@
 *{box-sizing:border-box}
 body{font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue",Arial; margin:0;background:linear-gradient(180deg, #fbfdff 0%, #ffffff 60%);color:var(--text);-webkit-font-smoothing:antialiased;}
 .container{max-width:940px;margin:32px auto;padding:24px}
-h1{margin:0 0 18px;color:var(--accent)}
 .form-section,.report-section{background:var(--card);border-radius:12px;padding:18px;margin-bottom:18px;box-shadow:0 8px 20px rgba(0,0,0,0.6);transition:transform .28s ease,box-shadow .28s ease}
 .form-section:hover, .report-section:hover{transform:translateY(-4px);box-shadow:0 22px 50px rgba(20,30,40,0.06)}
 label{display:block;margin-bottom:10px;font-weight:600;color:var(--muted)}
@@ -27,7 +27,6 @@ thead th{background:transparent;color:var(--muted);font-weight:700;padding:12px}
 tbody tr{transition:background .18s ease,transform .12s ease}
 tbody tr:hover{background:linear-gradient(90deg, rgba(179,0,0,0.03), rgba(179,0,0,0.02));transform:translateY(-2px)}
 th,td{padding:12px;border-bottom:1px solid #f1f6fb;color:var(--muted-2)}
-td strong, td b{color:var(--accent)}
 
 /* centralizar logo e colocar texto abaixo */
 header.site-header{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;margin-bottom:22px;padding-top:8px;padding:28px 0 8px;background:transparent}
@@ -59,6 +58,215 @@ main.container{max-width:1100px;margin:24px auto;padding:28px;background:linear-
 .inline-group label{flex:1;display:flex;flex-direction:column}
 .select{padding:10px;border-radius:10px;border:1px solid #eef3f7;background:linear-gradient(180deg,#fff,#fbfdff)}
 
+/* Ajustes para seção "Relatório mensal" — manter proporção com o conteúdo */
+.report-section{padding:16px}
+.report-section h2{margin:0 0 8px;font-size:1.1rem}
+.report-section > label{display:inline-flex;align-items:center;gap:8px;margin-bottom:8px;font-weight:600;color:var(--muted)}
+.report-section > label input[type="month"]{margin-left:6px;padding:6px 8px;border-radius:8px;border:1px solid #e6edf2;background:#fff}
+.report-section .summary{display:flex;gap:18px;flex-wrap:wrap;align-items:center;margin:8px 0;padding:10px;background:linear-gradient(180deg, rgba(255,255,255,0.6), rgba(250,250,250,0.6));border-radius:8px}
+.report-section .summary p{margin:0;color:var(--muted);font-weight:600}
+.report-section .summary p strong{color:var(--accent);font-weight:700}
+/* tabela dentro do card com overflow interno para não estourar o layout */
+.table-wrap{margin-top:10px;background:transparent;padding:0;border-radius:6px;overflow:auto}
+.table-wrap table{width:100%;max-width:100%;border-collapse:separate;border-spacing:0}
+thead th{padding:10px}
+th,td{padding:10px;border-bottom:1px solid #f1f6fb;color:var(--muted-2)}
+/* garantir que textos quebrem e a tabela não expanda o card */
+th,td{white-space:normal;word-break:break-word;overflow-wrap:break-word}
 @media (max-width:720px){
-  .inline-group{flex-direction:column}
+  .report-section{padding:12px}
+  .report-section .summary{gap:10px;padding:8px}
+  th,td{padding:8px;font-size:0.95rem}
+}
+
+/* Cabeçalho compacto: fonte menor, sem quebra, para manter os títulos em uma única linha */
+#sales-table thead th{
+  font-size:0.78rem; /* menor para caber */
+  padding:8px 10px;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  color:var(--muted);
+}
+/* manter dados com fonte legível e espaçamento confortável */
+#sales-table tbody td{
+  font-size:0.95rem;
+  padding:10px;
+  color:var(--text);
+}
+/* em telas muito pequenas reduzir ainda mais o cabeçalho */
+@media (max-width:520px){
+  #sales-table thead th{font-size:0.7rem;padding:6px}
+  #sales-table tbody td{font-size:0.9rem;padding:8px}
+}
+
+/* estilo para input com sufixo (porcentagem) */
+.input-suffix{display:inline-flex;align-items:center;border-radius:8px;overflow:hidden;border:1px solid #e6edf2;background:#fff}
+.input-suffix input{border:none;padding:8px 10px;height:36px;width:90px;outline:none}
+.input-suffix .suffix{padding:0 10px;color:var(--muted);background:transparent;border-left:1px solid rgba(0,0,0,0.04)}
+@media (max-width:720px){
+  .input-suffix input{width:100%}
+}
+
+/* estilos para campo Marca moderno */
+.select-wrapper{display:inline-flex;align-items:center;gap:6px;border:1px solid #e6edf2;background:#fff;padding:4px 6px; border-radius:8px; max-width:320px; width:auto}
+.select-wrapper .icon-brand{flex:0 0 14px;height:14px;width:14px}
+.select-wrapper .input-select{border:none;outline:none;padding:6px 6px;font-size:0.92rem;background:transparent;height:36px;min-width:80px}
+.select-wrapper .clear-brand{background:transparent;border:none;color:var(--muted);font-size:1rem;line-height:1;cursor:pointer;padding:2px 6px;border-radius:6px}
+.select-wrapper .clear-brand:hover{background:rgba(0,0,0,0.03)}
+@media (max-width:720px){
+  .select-wrapper{max-width:100%}
+  .select-wrapper .input-select{width:100%}
+}
+
+/* Harmonização visual geral */
+.form-section h2, .report-section h2{font-size:1.15rem;color:var(--accent);margin-bottom:12px}
+.form-section{padding:20px}
+/* inputs e selects consistentes */
+input[type="text"], input[type="number"], input[type="date"], select, .input-select{height:44px;padding:10px 12px;border-radius:10px;border:1px solid #e6edf2;background:#fff;color:var(--text);box-shadow:none}
+.input-plate{letter-spacing:1px;padding:8px}
+.input-compact{height:40px}
+input:focus, select:focus, .input-select:focus{box-shadow:0 4px 14px rgba(179,0,0,0.06);border-color:rgba(179,0,0,0.12);outline:none}
+label{font-size:0.95rem}
+/* ações com espaçamento e alinhamento */
+.actions{display:flex;gap:10px;justify-content:flex-end;margin-top:8px}
+.btn{font-weight:600}
+.btn--muted{border-radius:10px}
+/* resumo compacto e legível */
+.report-section .summary{display:flex;gap:18px;flex-wrap:wrap;align-items:center;margin-top:10px;padding:12px;background:linear-gradient(180deg,#fff,#fbfdff);border-radius:10px;border:1px solid #eef3f7}
+.report-section .summary p{margin:0;color:var(--muted);font-weight:600}
+.report-section .summary p strong{color:var(--accent);font-weight:700}
+/* tabela dentro do card com boa separação */
+.table-wrap{margin-top:12px;background:transparent;border-radius:8px;padding:6px;border:0}
+table{width:100%;border-collapse:separate;border-spacing:0}
+thead th{background:transparent;color:var(--muted);font-weight:700;padding:12px;text-align:left}
+th,td{padding:12px;border-bottom:1px solid #f1f6fb;color:var(--muted-2)}
+tbody tr:hover{background:linear-gradient(90deg, rgba(179,0,0,0.02), rgba(179,0,0,0.01));}
+/* alinhar números à direita para melhor leitura */
+#sales-table th:nth-child(4), #sales-table td:nth-child(4), #sales-table th:nth-child(5), #sales-table td:nth-child(5), #sales-table th:nth-child(15), #sales-table td:nth-child(15){text-align:right}
+/* responsividade suave */
+@media (max-width:720px){
+  .actions{justify-content:flex-start}
+  .report-section .summary{padding:8px}
+  th,td{padding:8px;font-size:0.95rem}
+}
+
+/* tornar a tipografia das linhas da tabela mais compacta e harmônica */
+#sales-table thead th{font-size:0.82rem}
+#sales-table tbody td{font-size:0.92rem; padding:10px 8px; color:var(--text)}
+#sales-table tbody tr:hover td{background:transparent}
+/* reduzir espaçamento entre colunas para ficar mais compacto */
+#sales-table th, #sales-table td{white-space:normal}
+
+/* remove quaisquer estilos de single-list restantes */
+.single-list{display:none}
+.single-item{display:none}
+
+/* fim do reset */
+/* Forçar exibição horizontal sem quebras nas células da tabela de vendas */
+.table-wrap{overflow:auto}
+#sales-table{min-width: max-content; /* permite que a tabela cresça conforme o conteúdo e gere scroll */}
+#sales-table thead th, #sales-table tbody td{
+  white-space:nowrap !important; /* não quebrar linhas */
+  word-break:normal !important;
+  overflow:hidden; /* evitar quebra visual em células */
+  text-overflow:ellipsis; /* truncar com reticências se for preciso */
+}
+/* garantir que cabeçalhos e células numéricas mantenham alinhamento e não quebrem */
+#sales-table thead th, #sales-table tbody td{vertical-align:middle}
+@media (max-width:520px){
+  /* em telas muito pequenas permitir scroll horizontal no card e manter no-wrap */
+  .table-wrap{overflow-x:auto}
+  #sales-table thead th, #sales-table tbody td{white-space:nowrap}
+}
+
+/* Alinhamento preciso das colunas: garantir que cada célula fique exatamente abaixo do seu cabeçalho */
+/* Usa box-sizing consistente, padding idêntico e larguras mínimas por coluna. Ajuste as --col-N conforme necessário para correspondência perfeita. */
+#sales-table, #sales-table thead, #sales-table tbody, #sales-table tr, #sales-table th, #sales-table td {
+  box-sizing: border-box; /* garante que padding não cause desalinhamento */
+}
+#sales-table th, #sales-table td{
+  padding:10px 12px; /* padding idêntico entre cabeçalho e células */
+  vertical-align:middle;
+  white-space:nowrap; /* forçar em uma única linha */
+}
+
+/* Defina larguras base por coluna (min-width + width) para garantir alinhamento exato.
+   Ajuste os valores das variáveis abaixo para alinhar cada especificação sob seu cabeçalho.
+   Se quiser que uma coluna seja flexível, aumente apenas min-width e remova width. */
+:root{
+  --col-1:140px;  /* ex: placa / id */
+  --col-2:120px;  /* ex: marca */
+  --col-3:120px;  /* ex: modelo */
+  --col-4:110px;  /* ex: preço (numérico) */
+  --col-5:90px;   /* ex: BDC (Sim/Não) */
+  --col-6:160px;
+  --col-7:140px;
+  --col-8:120px;
+  --col-9:120px;
+  --col-10:120px;
+  --col-11:120px;
+  --col-12:120px;
+  --col-13:120px;
+  --col-14:120px;
+  --col-15:110px;
+  --col-16:140px;
+}
+
+/* Aplica larguras por índice de coluna — garanta que o número de colunas do seu <table> corresponda ao número de regras abaixo. */
+#sales-table th:nth-child(1), #sales-table td:nth-child(1){min-width:var(--col-1); width:var(--col-1)}
+#sales-table th:nth-child(2), #sales-table td:nth-child(2){min-width:var(--col-2); width:var(--col-2)}
+#sales-table th:nth-child(3), #sales-table td:nth-child(3){min-width:var(--col-3); width:var(--col-3)}
+#sales-table th:nth-child(4), #sales-table td:nth-child(4){min-width:var(--col-4); width:var(--col-4)}
+#sales-table th:nth-child(5), #sales-table td:nth-child(5){min-width:var(--col-5); width:var(--col-5)}
+#sales-table th:nth-child(6), #sales-table td:nth-child(6){min-width:var(--col-6); width:var(--col-6)}
+#sales-table th:nth-child(7), #sales-table td:nth-child(7){min-width:var(--col-7); width:var(--col-7)}
+#sales-table th:nth-child(8), #sales-table td:nth-child(8){min-width:var(--col-8); width:var(--col-8)}
+#sales-table th:nth-child(9), #sales-table td:nth-child(9){min-width:var(--col-9); width:var(--col-9)}
+#sales-table th:nth-child(10), #sales-table td:nth-child(10){min-width:var(--col-10); width:var(--col-10)}
+#sales-table th:nth-child(11), #sales-table td:nth-child(11){min-width:var(--col-11); width:var(--col-11)}
+#sales-table th:nth-child(12), #sales-table td:nth-child(12){min-width:var(--col-12); width:var(--col-12)}
+#sales-table th:nth-child(13), #sales-table td:nth-child(13){min-width:var(--col-13); width:var(--col-13)}
+#sales-table th:nth-child(14), #sales-table td:nth-child(14){min-width:var(--col-14); width:var(--col-14)}
+#sales-table th:nth-child(15), #sales-table td:nth-child(15){min-width:var(--col-15); width:var(--col-15)}
+#sales-table th:nth-child(16), #sales-table td:nth-child(16){min-width:var(--col-16); width:var(--col-16)}
+
+/* Colunas numéricas (como preço) alinhadas à direita */
+#sales-table th[data-type="numeric"], #sales-table td[data-type="numeric"],
+#sales-table th.numeric, #sales-table td.numeric{ text-align:right }
+
+/* Fallback caso a tabela não use atributos: mantenha as colunas 4 e 5 como numéricas (com base no layout atual) */
+#sales-table th:nth-child(4), #sales-table td:nth-child(4),
+#sales-table th:nth-child(5), #sales-table td:nth-child(5){text-align:right}
+
+/* Em dispositivos pequenos permitir scroll horizontal mantendo alinhamento exato */
+@media (max-width:720px){
+  :root{
+    --col-1:120px; --col-2:100px; --col-3:100px; --col-4:100px; --col-5:80px; --col-6:120px; --col-7:110px; --col-8:100px; --col-9:100px; --col-10:100px; --col-11:100px; --col-12:100px; --col-13:100px; --col-14:100px; --col-15:90px; --col-16:110px;
+  }
+  #sales-table th, #sales-table td{padding:8px}
+}
+
+/* Pequeno ajuste visual: mostrar conteúdo completo ao passar o mouse (opcional) */
+#sales-table td:hover{overflow:visible}
+
+/* Alinhar bloco "ESPECIFICACOES EX BDC - SIM" exatamente abaixo do formulário principal */
+.form-section + .specs-bdc{
+  margin-top:6px; /* reduzir espaçamento para ficar logo abaixo do formulário */
+  width:100%;
+  display:block;
+  box-shadow:var(--shadow);
+  background:var(--card);
+  border-radius:10px;
+  padding:12px;
+  border:1px solid #eef3f7;
+}
+.specs-bdc{box-sizing:border-box;font-size:0.95rem;color:var(--text)}
+.specs-bdc .spec-row{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.specs-bdc .spec-row .label{min-width:180px;color:var(--muted);font-weight:600}
+.specs-bdc .spec-row .value{flex:1;color:var(--text);word-break:normal;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+/* garantir alinhamento com inputs do formulário em telas pequenas */
+@media (max-width:720px){
+  .specs-bdc .spec-row{flex-direction:column;align-items:flex-start}
+  .specs-bdc .spec-row .label{min-width:0}
 }

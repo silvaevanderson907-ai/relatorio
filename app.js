@@ -2,20 +2,47 @@
   const KEY = 'car-sales-v1';
   const form = document.getElementById('sale-form');
   const inputDate = document.getElementById('sale-date');
-  const inputModel = document.getElementById('sale-model');
+  const inputBrand = document.getElementById('sale-brand');
   const inputPrice = document.getElementById('sale-price');
   const inputQty = document.getElementById('sale-qty');
   const inputSeller = document.getElementById('sale-seller');
   const inputBdc = document.getElementById('sale-bdc');
   const inputCaptacao = document.getElementById('sale-captacao');
   const inputPlaca = document.getElementById('sale-placa');
+  const inputPlateSold = document.getElementById('sale-plate-sold');
+  const inputPlateCaptured = document.getElementById('sale-plate-captured');
+  const inputVehicle = document.getElementById('sale-vehicle');
+  const inputClient = document.getElementById('sale-client');
+  const inputDays = document.getElementById('sale-days');
+  const inputPayment = document.getElementById('sale-payment');
+  const inputFipe = document.getElementById('sale-fipe');
   const clearBtn = document.getElementById('clear-all');
   const monthInput = document.getElementById('report-month');
+  const vehicleDatalist = document.getElementById('vehicle-list');
 
   const summaryCount = document.getElementById('summary-count');
   const summaryTotal = document.getElementById('summary-total');
   const summaryAvg = document.getElementById('summary-avg');
   const tableBody = document.querySelector('#sales-table tbody');
+
+  // mapeamento simples de marcas -> modelos (amostra); pode ser estendido
+  const brandModels = {
+    'Toyota': ['Corolla','Corolla Altis','Corolla XEI','Hilux','Yaris','Etios','RAV4','SW4','Prius'],
+    'Volkswagen': ['Gol','Polo','Virtus','T-Cross','Nivus','Tiguan','Golf','Saveiro'],
+    'Chevrolet': ['Onix','Cruze','Tracker','S10','Montana','Spin'],
+    'Fiat': ['Uno','Mobi','Argo','Toro','Strada','Cronos','Fiat 500'],
+    'Ford': ['Ka','EcoSport','Ranger','Fiesta'],
+    'Renault': ['Logan','Sandero','Duster','Captur','Kwid'],
+    'Honda': ['Civic','Fit','HR-V','City','WR-V'],
+    'Hyundai': ['HB20','Creta','Tucson','Santa Fe','Elantra'],
+    'Nissan': ['Kicks','Versa','Sentra','Frontier'],
+    'Jeep': ['Renegade','Compass','Wrangler'],
+    'Peugeot': ['208','2008','3008'],
+    'Citroën': ['C3','C4 Cactus','Aircross'],
+    'Mercedes-Benz': ['C180','C200','GLA'],
+    'BMW': ['320i','X1','X3'],
+    'Audi': ['A3','Q3','A4']
+  };
 
   function load(){
     try{
@@ -37,10 +64,7 @@
     try{
       let s = String(raw).trim();
       if(!s) return 0;
-      // remove símbolos e letras
       s = s.replace(/[^0-9,.-]/g, '');
-      // se usar vírgula como decimal (pt-BR), transformar para ponto; remover pontos de milhares
-      // ex: '185.900,00' -> '185900,00' -> '185900.00'
       if (s.indexOf(',') !== -1 && s.indexOf('.') !== -1) {
         s = s.replace(/\./g, '');
         s = s.replace(/,/g, '.');
@@ -62,7 +86,7 @@
       const total = Number(s.price) * Number(s.qty);
       totalCount += Number(s.qty);
       revenue += total;
-      tr.innerHTML = `<td>${s.date}</td><td>${s.model}</td><td>R$ ${formatMoney(s.price)}</td><td>${s.qty}</td><td>${s.bdc || 'Não'}</td><td>${s.captacao || 'Não'}</td><td>${s.placa || 'Não'}</td><td>${s.seller}</td><td>R$ ${formatMoney(total)}</td><td><button data-idx="${idx}" class="btn btn--muted remove">Remover</button></td>`;
+      tr.innerHTML = `<td>${s.date}</td><td>${s.vehicle||''}</td><td>${s.brand||''}</td><td>R$ ${formatMoney(s.price)}</td><td>${s.qty}</td><td>${s.bdc||'Não'}</td><td>${s.captacao||'Não'}</td><td>${s.plateSold||''}</td><td>${s.plateCaptured||''}</td><td>${s.client||''}</td><td>${s.days||''}</td><td>${s.payment||''}</td><td>${s.fipe||''}</td><td>${s.seller}</td><td>R$ ${formatMoney(total)}</td><td><button data-idx="${idx}" class="btn btn--muted remove">Remover</button></td>`;
       tableBody.appendChild(tr);
     });
     summaryCount.textContent = totalCount;
@@ -84,19 +108,46 @@
     }));
   }
 
+  // popula datalist de veículos quando a marca muda
+  function populateVehiclesForBrand(brand){
+    vehicleDatalist.innerHTML = '';
+    const models = brandModels[brand];
+    if(!models || !models.length) return;
+    // mostrar apenas os modelos mais comuns (top 6)
+    const topModels = models.slice(0,6);
+    topModels.forEach(m => {
+      const opt = document.createElement('option');
+      opt.value = m;
+      vehicleDatalist.appendChild(opt);
+    });
+  }
+
+  inputBrand?.addEventListener('change', (e)=>{
+    populateVehiclesForBrand(e.target.value);
+  });
+
   form.addEventListener('submit', e =>{
     e.preventDefault();
+    // garantir formatação do preço antes de salvar
+    try{ inputPrice.value = formatMoney(parseMoneyFromInput(inputPrice.value)); }catch(e){}
     const date = inputDate.value;
-    const model = inputModel.value.trim();
+    const vehicle = inputVehicle.value.trim();
+    const brand = inputBrand.value.trim();
     const price = parseMoneyFromInput(inputPrice.value);
     const qty = parseInt(inputQty.value) || 1;
     const seller = inputSeller.value.trim();
     const bdc = inputBdc.value || 'Não';
     const captacao = inputCaptacao.value || 'Não';
-    const placa = inputPlaca.value || 'Não';
-    if(!date||!model||!seller) return alert('Preencha data, modelo e vendedor.');
+    const placa = inputPlaca?.value || '';
+    const plateSold = inputPlateSold.value.trim() || '';
+    const plateCaptured = inputPlateCaptured.value.trim() || '';
+    const client = inputClient.value.trim() || '';
+    const days = parseInt(inputDays.value) || 0;
+    const payment = inputPayment.value || '';
+    const fipe = parseFloat(inputFipe.value) || 0;
+    if(!date||!brand||!seller) return alert('Preencha data, marca e vendedor.');
     const data = load();
-    data.push({ date, model, price, qty, seller, bdc, captacao, placa });
+    data.push({ date, vehicle, brand, price, qty, seller, bdc, captacao, placa, plateSold, plateCaptured, client, days, payment, fipe });
     save(data);
     form.reset();
     render(monthInput.value);
@@ -136,8 +187,8 @@
     const data = load();
     const filtered = month ? data.filter(s => s.date.startsWith(month)) : data;
     if(!filtered.length) return alert('Nenhum registro para exportar neste período.');
-    const rows = [ ['Data','Modelo','Preço','Quantidade','Vendedor','Total'] ];
-    filtered.forEach(r=> rows.push([r.date, r.model, r.price, r.qty, r.seller, (r.price*r.qty).toFixed(2)]));
+    const rows = [ ['Data','Veículo','Marca','Preço','Quantidade','Vendedor','Total'] ];
+    filtered.forEach(r=> rows.push([r.date, r.vehicle, r.brand, r.price, r.qty, r.seller, (r.price*r.qty).toFixed(2)]));
     const csv = rows.map(r=> r.map(cell=> '"'+String(cell).replace(/"/g,'""')+'"').join(',')).join('\n');
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
@@ -181,5 +232,27 @@
   inputPrice.addEventListener('input', (e)=>{
     // apenas números, ponto, vírgula
     e.target.value = e.target.value.replace(/[^0-9.,]/g, '');
+  });
+
+  // limpeza rápida do campo marca
+  document.querySelector('.clear-brand')?.addEventListener('click', ()=>{
+    if(document.getElementById('sale-brand')) document.getElementById('sale-brand').value = '';
+    if(document.getElementById('sale-vehicle')) document.getElementById('sale-vehicle').value = '';
+    vehicleDatalist.innerHTML = '';
+  });
+
+  // ao focar no campo marca, mostrar sugestões (re-popular por precaução)
+  document.getElementById('sale-brand')?.addEventListener('focus', (e)=>{
+    const val = e.target.value;
+    if(val) populateVehiclesForBrand(val);
+  });
+
+  // re-aplicar formatação automática de preço imediatamente e ao colar
+  inputPrice.addEventListener('paste', (e)=>{
+    setTimeout(()=>{ try{
+      const el = e.target;
+      const v = parseMoneyFromInput(el.value);
+      el.value = formatMoney(v);
+    }catch(e){}}, 0);
   });
 })();

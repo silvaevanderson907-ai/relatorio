@@ -4,14 +4,16 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>Controle de Vendas - Carros</title>
-  <link rel="icon" type="image/jpeg" href="../imagens/logo.jpeg">
+  <link rel="icon" type="image/png" href="imagens/logo.jpeg">
+  <link rel="shortcut icon" href="imagens/favicon-32.png">
+  <link rel="apple-touch-icon" href="imagens/favicon-32.png">
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
   <header class="site-header">
     <div class="site-brand">
       <!-- logo image with fallback to inline SVG -->
-      <img src="../imagens/toyota-logo.png" alt="Toyota" class="logo" id="logo-img" onerror="this.style.display='none';document.getElementById('logo-fallback').style.display='flex'">
+      <img src="imagens/toyota-logo.png" alt="Toyota" class="logo" id="logo-img" onerror="this.style.display='none';document.getElementById('logo-fallback').style.display='flex'">
       <div id="logo-fallback" style="display:none;align-items:center">
         <!-- fallback inline SVG -->
         <svg class="logo" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 40" role="img" aria-label="logo">
@@ -33,8 +35,14 @@
         <label>Data
           <input type="date" id="sale-date" required>
         </label>
-        <label>Modelo
-          <input type="text" id="sale-model" placeholder="Ex: Toyota Corolla" required>
+        <label>Marca
+          <div class="select-wrapper">
+            <!-- ícone da marca -->
+            <svg class="icon-brand" width="18" height="18" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+            </svg>
+            <input list="brand-list" id="sale-brand" placeholder="Ex: Toyota" required class="input-select">
+            <button type="button" class="clear-brand" title="Limpar marca" aria-label="Limpar marca">×</button>
+          </div>
         </label>
         <label>Preço (R$)
           <input type="text" id="sale-price" step="0.01" min="0" required>
@@ -59,6 +67,70 @@
               <option value="Não">Não</option>
               <option value="Sim">Sim</option>
             </select>
+          </label>
+        </div>
+
+        <!-- placas: carro vendido e carro captado -->
+        <div class="inline-group">
+          <label>Placa (venda)
+            <input type="text" id="sale-plate-sold" placeholder="ABC1D23" class="input-plate">
+          </label>
+          <label>Placa (captada)
+            <input type="text" id="sale-plate-captured" placeholder="ABC1D23" class="input-plate">
+          </label>
+        </div>
+
+        <!-- novos campos solicitados -->
+        <div class="inline-group">
+          <label>Veículo
+            <input list="vehicle-list" type="text" id="sale-vehicle" placeholder="Ex: Corolla XEI" class="input">
+          </label>
+          <label>Cliente
+            <input type="text" id="sale-client" placeholder="Nome do cliente" class="input">
+          </label>
+        </div>
+
+        <!-- datalists -->
+        <datalist id="brand-list">
+          <option value="Toyota">
+          <option value="Volkswagen">
+          <option value="Chevrolet">
+          <option value="Fiat">
+          <option value="Ford">
+          <option value="Renault">
+          <option value="Honda">
+          <option value="Hyundai">
+          <option value="Nissan">
+          <option value="Jeep">
+          <option value="Peugeot">
+          <option value="Citroën">
+          <option value="Mercedes-Benz">
+          <option value="BMW">
+          <option value="Audi">
+        </datalist>
+        <datalist id="vehicle-list"></datalist>
+
+        <div class="inline-group">
+          <label>Dias de estoque
+            <input type="number" id="sale-days" min="0" value="0" class="input-compact">
+          </label>
+          <label>Forma de pagamento
+            <select id="sale-payment" class="select">
+              <option value="À vista">À vista</option>
+              <option value="Financiamento">Financiamento</option>
+              <option value="Consórcio">Consórcio</option>
+              <option value="Troca">Troca</option>
+              <option value="Outro">Outro</option>
+            </select>
+          </label>
+        </div>
+
+        <div class="inline-group">
+          <label>% FIPE de NF
+            <div class="input-suffix">
+              <input type="number" id="sale-fipe" step="0.01" min="0" max="100" class="input-compact" placeholder="0.00" value="0.00">
+              <span class="suffix">%</span>
+            </div>
           </label>
         </div>
 
@@ -89,7 +161,24 @@
       <div class="table-wrap">
         <table id="sales-table">
           <thead>
-            <tr><th>Data</th><th>Modelo</th><th>Preço (R$)</th><th>Qtde</th><th>BDC</th><th>Captação</th><th>Placa premiada</th><th>Vendedor</th><th>Total</th><th></th></tr>
+            <tr>
+              <th>Data</th>
+              <th>Veículo</th>
+              <th>Marca</th>
+              <th>Preço (R$)</th>
+              <th>Qtde</th>
+              <th>BDC</th>
+              <th>Captação</th>
+              <th>Placa venda</th>
+              <th>Placa captação</th>
+              <th>Cliente</th>
+              <th>Dias estoque</th>
+              <th>Pagamento</th>
+              <th>% FIPE</th>
+              <th>Vendedor</th>
+              <th>Total</th>
+              <th></th>
+            </tr>
           </thead>
           <tbody></tbody>
         </table>
@@ -99,7 +188,7 @@
 
   <footer class="site-footer">
     <div class="footer-brand">
-      <img src="../imagens/toyota-logo.png" alt="Toyota" class="logo footer-logo">
+      <img src="imagens/toyota-logo.png" alt="Toyota" class="logo footer-logo">
       <div class="brand-text-footer">
         <h2>Concessionária — Controle de Vendas</h2>
         <p class="tagline">Relatório mensal</p>

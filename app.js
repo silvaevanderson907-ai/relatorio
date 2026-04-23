@@ -20,6 +20,53 @@
   const monthInput = document.getElementById('report-month');
   const vehicleDatalist = document.getElementById('vehicle-list');
 
+  // Inicializa formatação do campo de preço de forma simples e confiável
+  function initPriceFormatting(){
+    const ip = document.getElementById('sale-price');
+    if(!ip){ console.warn('initPriceFormatting: campo #sale-price não encontrado'); return; }
+    if(ip._priceFormattingInitialized) return;
+    ip._priceFormattingInitialized = true;
+
+    // enquanto digita: apenas limpar caracteres inválidos e preservar cursor
+    ip.addEventListener('input', (e)=>{
+      try{
+        const el = e.target;
+        const old = String(el.value);
+        const sel = el.selectionStart || 0;
+        const cleaned = old.replace(/[^0-9.,]/g, '');
+        if(cleaned === old) return;
+        const diff = old.length - cleaned.length;
+        el.value = cleaned;
+        try{ el.setSelectionRange(Math.max(0, sel - diff), Math.max(0, sel - diff)); }catch(e){}
+      }catch(err){ console.error('initPriceFormatting input error', err); }
+    });
+
+    // ao sair do campo / mudar / colar / Enter / submit -> formatar para pt-BR
+    ip.addEventListener('blur', (e)=>{ try{ e.target.value = formatMoney(parseMoneyFromInput(e.target.value)); }catch(e){} });
+    ip.addEventListener('change', (e)=>{ try{ e.target.value = formatMoney(parseMoneyFromInput(e.target.value)); }catch(e){} });
+    ip.addEventListener('keydown', (e)=>{
+      if(e.key === 'Enter'){
+        e.preventDefault();
+        try{ e.target.value = formatMoney(parseMoneyFromInput(e.target.value)); }catch(err){}
+        const formElements = Array.from(document.querySelectorAll('input, select, textarea, button'));
+        const idx = formElements.indexOf(e.target);
+        if(idx >= 0 && idx < formElements.length - 1) formElements[idx+1].focus();
+      }
+    });
+    ip.addEventListener('paste', (e)=>{ setTimeout(()=>{ try{ const el = e.target; el.value = formatMoney(parseMoneyFromInput(el.value)); }catch(e){} },0); });
+    console.info('initPriceFormatting: listeners anexados ao #sale-price (modo fácil)');
+  }
+
+  // chamar imediatamente e garantir no DOMContentLoaded
+  try{ initPriceFormatting(); }catch(e){}
+  document.addEventListener('DOMContentLoaded', initPriceFormatting);
+
+   if(!inputPrice){
+     console.error('Campo #sale-price não encontrado. Verifique o id no HTML.');
+   } else {
+     console.info('Campo #sale-price encontrado. Listeners de formatação de preço ativados.');
+   }
+
   const summaryCount = document.getElementById('summary-count');
   const summaryTotal = document.getElementById('summary-total');
   const summaryAvg = document.getElementById('summary-avg');
@@ -210,6 +257,7 @@
     try{
       const v = parseMoneyFromInput(e.target.value);
       e.target.value = formatMoney(v);
+      console.debug('price formatted on blur:', e.target.value);
     }catch(e){}
   });
 
@@ -228,10 +276,28 @@
     }
   });
 
-  // permitir digitação com vírgula/ponto e impedir caracteres inválidos
+  // Formatação em tempo real com preservação do cursor
   inputPrice.addEventListener('input', (e)=>{
-    // apenas números, ponto, vírgula
-    e.target.value = e.target.value.replace(/[^0-9.,]/g, '');
+    try{
+      const el = e.target;
+      const old = String(el.value);
+      const caret = el.selectionStart || old.length;
+      // contar dígitos à direita do cursor (0-9)
+      const rightDigits = (old.slice(caret).match(/\d/g) || []).length;
+      const n = parseMoneyFromInput(old);
+      const formatted = formatMoney(n);
+      if(formatted === old) return;
+      el.value = formatted;
+      // posicionar o cursor de forma que haja same number of digits à direita
+      let pos = formatted.length;
+      let count = 0;
+      for(let i = formatted.length - 1; i >= 0; i--){
+        if(/\d/.test(formatted[i])) count++;
+        if(count === rightDigits){ pos = i; break; }
+      }
+      // colocar cursor logo após o dígito encontrado
+      try{ el.setSelectionRange(Math.min(pos+1, formatted.length), Math.min(pos+1, formatted.length)); }catch(e){}
+    }catch(err){ console.error('Erro formatação em tempo real:', err); }
   });
 
   // limpeza rápida do campo marca
@@ -248,11 +314,61 @@
   });
 
   // re-aplicar formatação automática de preço imediatamente e ao colar
-  inputPrice.addEventListener('paste', (e)=>{
-    setTimeout(()=>{ try{
-      const el = e.target;
-      const v = parseMoneyFromInput(el.value);
-      el.value = formatMoney(v);
-    }catch(e){}}, 0);
-  });
+  if(inputPrice){
+    inputPrice.addEventListener('paste', (e)=>{
+      setTimeout(()=>{ try{
+        const el = e.target;
+        const v = parseMoneyFromInput(el.value);
+        el.value = formatMoney(v);
+      }catch(e){}}, 0);
+    });
+  }
+
+  // Se o campo não existia (por carregamento antecipado), tentar anexar listeners após DOMContentLoaded
+  if(!inputPrice){
+    document.addEventListener('DOMContentLoaded', ()=>{
+      const ip = document.getElementById('sale-price');
+      if(!ip){ console.error('Campo #sale-price ainda não encontrado após DOMContentLoaded.'); return; }
+      // blur
+      ip.addEventListener('blur', (e)=>{
+        try{ const v = parseMoneyFromInput(e.target.value); e.target.value = formatMoney(v); console.debug('price formatted on blur after DOMContentLoaded:', e.target.value);}catch(e){}
+      });
+      // change
+      ip.addEventListener('change', (e)=>{ try{ e.target.value = formatMoney(parseMoneyFromInput(e.target.value)); }catch(e){} });
+      // keydown Enter
+      ip.addEventListener('keydown', (e)=>{
+        if(e.key === 'Enter'){
+          e.preventDefault();
+          try{ e.target.value = formatMoney(parseMoneyFromInput(e.target.value)); }catch(err){}
+          const formElements = Array.from(form.querySelectorAll('input, select, textarea, button'));
+          const idx = formElements.indexOf(e.target);
+          if(idx >= 0 && idx < formElements.length - 1) formElements[idx+1].focus();
+        }
+      });
+      // Formatação em tempo real com preservação do cursor (fallback)
+      ip.addEventListener('input', (e)=>{
+        try{
+          const el = e.target;
+          const old = String(el.value);
+          const caret = el.selectionStart || old.length;
+          const rightDigits = (old.slice(caret).match(/\d/g) || []).length;
+          const n = parseMoneyFromInput(old);
+          const formatted = formatMoney(n);
+          if(formatted === old) return;
+          el.value = formatted;
+          let pos = formatted.length;
+          let count = 0;
+          for(let i = formatted.length - 1; i >= 0; i--){
+            if(/\d/.test(formatted[i])) count++;
+            if(count === rightDigits){ pos = i; break; }
+          }
+          try{ el.setSelectionRange(Math.min(pos+1, formatted.length), Math.min(pos+1, formatted.length)); }catch(e){}
+        }catch(err){ console.error('Erro formatação em tempo real (DOMContentLoaded):', err); }
+      });
+      // paste
+      ip.addEventListener('paste', (e)=>{ setTimeout(()=>{ try{ const el = e.target; const v = parseMoneyFromInput(el.value); el.value = formatMoney(v);}catch(e){} },0); });
+      console.info('Listeners de preço anexados após DOMContentLoaded');
+    });
+  }
+
 })();

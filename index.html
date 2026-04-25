@@ -141,6 +141,13 @@
         <label>Vendedor
           <input type="text" id="sale-seller" placeholder="Nome" required>
         </label>
+
+        <!-- Status removido do formulário; será editável apenas no relatório após cadastro -->
+
+        <!-- campo de observações para cada venda -->
+        <label>Observações
+          <textarea id="sale-notes" placeholder="Anotações sobre a venda (ex: condições, devoluções, observações do cliente)" rows="3" style="width:100%;padding:8px;border-radius:8px;border:1px solid #e6edf2;background:#fff;color:var(--text);resize:vertical"></textarea>
+        </label>
         <div class="actions">
           <button type="submit" class="btn">Registrar</button>
           <button type="button" id="clear-all" class="btn btn--muted">Limpar tudo</button>
@@ -152,6 +159,14 @@
       <h2>Relatório mensal</h2>
       <label>Escolher mês
         <input type="month" id="report-month">
+      </label>
+      <label>Filtrar por status
+        <select id="filter-status" aria-label="Filtrar por status">
+          <option value="Todos">Todos</option>
+          <option value="Pendente">Pendente</option>
+          <option value="Faturado">Faturado</option>
+          <option value="Entregue">Entregue</option>
+        </select>
       </label>
       <div class="summary">
         <p>Total de vendas: <strong id="summary-count">0</strong></p>
@@ -175,6 +190,7 @@
               <th>Pagamento</th>
               <th>% FIPE</th>
               <th>Vendedor</th>
+              <th>Status</th>
               <th>Total</th>
               <th></th>
             </tr>

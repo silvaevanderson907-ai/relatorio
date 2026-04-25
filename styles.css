@@ -270,3 +270,70 @@ tbody tr:hover{background:linear-gradient(90deg, rgba(179,0,0,0.02), rgba(179,0,
   .specs-bdc .spec-row{flex-direction:column;align-items:flex-start}
   .specs-bdc .spec-row .label{min-width:0}
 }
+
+/* Separar cada venda por linha mantendo alinhamento das colunas */
+#sales-table{
+  border-collapse:separate; /* necessário para border-spacing vertical */
+  border-spacing: 0 10px; /* espaço vertical entre linhas (gaps) */
+}
+/* tornar cada linha do corpo visualmente um cartão, sem afetar o layout da tabela */
+#sales-table tbody tr{
+  background:linear-gradient(180deg,#ffffff,#fbfdff);
+  box-shadow:0 8px 20px rgba(20,30,40,0.04);
+  border-radius:10px;
+  transition:transform .12s ease,box-shadow .12s ease,background .12s ease;
+  /* manter comportamento de linha de tabela para alinhamento */
+  display:table-row;
+}
+/* remover bordas internas para destacar o cartão da linha */
+#sales-table th, #sales-table td{border-bottom:0}
+/* assegurar que células continuam alinhadas e com overflow controlado */
+#sales-table tbody td{
+  background:transparent; /* fundo do 'cartão' vem da própria tr */
+  white-space:nowrap; /* evitar quebra interna das células */
+  overflow:hidden;
+  text-overflow:ellipsis;
+  padding:12px;
+}
+/* arredondar as extremidades do cartão aplicando aos primeiros e últimos cells */
+#sales-table tbody tr td:first-child{border-radius:10px 0 0 10px}
+#sales-table tbody tr td:last-child{border-radius:0 10px 10px 0}
+/* hover more prominent */
+#sales-table tbody tr:hover{transform:translateY(-4px);box-shadow:0 18px 40px rgba(20,30,40,0.06)}
+/* Em telas pequenas reduzir espaçamento vertical e radius para melhor encaixe */
+@media (max-width:720px){
+  #sales-table{border-spacing:0 6px}
+  #sales-table tbody tr{border-radius:8px}
+  #sales-table tbody tr td:first-child{border-radius:8px 0 0 8px}
+  #sales-table tbody tr td:last-child{border-radius:0 8px 8px 0}
+  #sales-table tbody td{padding:8px;font-size:0.92rem}
+}
+
+/* estilo para observações exibidas abaixo de cada venda */
+.sale-notes-row td.sale-notes-cell{padding:10px 14px;background:linear-gradient(180deg,#fff,#fbfdff);color:var(--muted);font-size:0.95rem;border-bottom:1px solid #eef3f7}
+.sale-notes-row td.sale-notes-cell strong{color:var(--accent)}
+@media (max-width:720px){
+  .sale-notes-row td.sale-notes-cell{font-size:0.9rem;padding:8px}
+}
+
+/* destaque para coluna de status */
+#sales-table td, #sales-table th{vertical-align:middle}
+#sales-table td.status-cell{font-weight:700;color:var(--accent)}
+@media (max-width:720px){
+  #sales-table td.status-cell{font-weight:600}
+}
+
+/* destaque para status com cores */
+.status-pendente{background:linear-gradient(90deg, rgba(179,0,0,0.04), rgba(179,0,0,0.02)); color:var(--accent)}
+.status-faturado{background:linear-gradient(90deg, rgba(24,128,0,0.06), rgba(24,128,0,0.03)); color:#178000}
+.status-entregue{background:linear-gradient(90deg, rgba(0,98,179,0.04), rgba(0,98,179,0.02)); color:#0062b3}
+
+/* tornar o select de filtro visualmente alinhado com o input month */
+.report-section > label select#filter-status{margin-left:8px;padding:6px 8px;border-radius:8px;border:1px solid #e6edf2;background:#fff}
+
+/* ajustar célula de status para centralizar select */
+#sales-table td.status-cell{display:flex;align-items:center;justify-content:center}
+#sales-table td.status-cell select.status-select{border-radius:8px;padding:6px 8px;border:1px solid #e6edf2}
+
+/* garantir visibilidade do status em linhas de notas */
+.sale-notes-row td.sale-notes-cell{border-top:1px dashed #eef3f7}

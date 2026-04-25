@@ -17,8 +17,10 @@
   const inputPayment = document.getElementById('sale-payment');
   const inputFipe = document.getElementById('sale-fipe');
   const clearBtn = document.getElementById('clear-all');
+  const inputNotes = document.getElementById('sale-notes');
   const monthInput = document.getElementById('report-month');
   const vehicleDatalist = document.getElementById('vehicle-list');
+  const filterStatus = document.getElementById('filter-status');
 
   // Inicializa formatação do campo de preço de forma simples e confiável
   function initPriceFormatting(){
@@ -94,7 +96,72 @@
   function load(){
     try{
       const raw = localStorage.getItem(KEY);
-      return raw ? JSON.parse(raw) : [];
+      const arr = raw ? JSON.parse(raw) : [];
+      let changed = false;
+      const normalized = arr.map(item => {
+        const it = Object.assign({}, item);
+        // mapeamentos possíveis para nomes em versões antigas
+        const mapKeys = {
+          date: ['date','data','data_venda','vendadate','dataVenda'],
+          brand: ['brand','marca','brandName','marca_nome'],
+          vehicle: ['vehicle','veiculo','modelo','model','vehicleModel','modelo_veiculo'],
+          seller: ['seller','vendedor','sellerName','vendedor_nome'],
+          notes: ['notes','observacoes','observacao','observacoesVenda','observacoes_venda'],
+          price: ['price','preco','valor','valor_venda','preco_valor'],
+          qty: ['qty','quantidade','quantity','quantidade_venda'],
+          plateSold: ['plateSold','plate_venda','placa','plate','placa_venda','placa_vendida'],
+          plateCaptured: ['plateCaptured','plate_capturada','placa_captada','placa_capturada'],
+          client: ['client','cliente','nome_cliente'],
+          days: ['days','dias','dias_estoque','diasEstoque'],
+          payment: ['payment','forma_pagamento','formaPagamento'],
+          fipe: ['fipe','percent_fipe','porcentagem_fipe','porc_fipe'] ,
+          bdc: ['bdc'],
+          captacao: ['captacao','captação','captacao_flag'],
+          status: ['status','estado','situacao']
+        };
+        Object.keys(mapKeys).forEach(k => {
+          if(typeof it[k] === 'undefined'){
+            for(const alt of mapKeys[k]){
+              if(typeof it[alt] !== 'undefined'){
+                it[k] = it[alt];
+                changed = true;
+                break;
+              }
+            }
+          }
+        });
+        // conversões e defaults
+        if(typeof it.price === 'string'){
+          it.price = parseMoneyFromInput(it.price);
+          changed = true;
+        }
+        if(typeof it.qty === 'string'){
+          it.qty = Number(it.qty) || 1; changed = true;
+        }
+        if(typeof it.days === 'string'){
+          it.days = Number(it.days) || 0; changed = true;
+        }
+        if(typeof it.fipe === 'string'){
+          it.fipe = parseFloat(String(it.fipe).replace(/[^0-9.,-]/g,'')) || 0; changed = true;
+        }
+        // garantir campos mínimos
+        if(typeof it.date === 'undefined') it.date = '';
+        if(typeof it.brand === 'undefined') it.brand = '';
+        if(typeof it.vehicle === 'undefined') it.vehicle = '';
+        if(typeof it.seller === 'undefined') it.seller = '';
+        if(typeof it.notes === 'undefined') it.notes = '';
+        if(typeof it.price === 'undefined') it.price = 0;
+        if(typeof it.qty === 'undefined') it.qty = 1;
+        if(typeof it.plateSold === 'undefined') it.plateSold = '';
+        if(typeof it.plateCaptured === 'undefined') it.plateCaptured = '';
+        if(typeof it.client === 'undefined') it.client = '';
+        if(typeof it.status === 'undefined') it.status = 'Pendente';
+        // criar id se ausente
+        if(!it.id){ it.id = (Date.now().toString(36) + '-' + Math.random().toString(36).slice(2,8)); changed = true; }
+        return it;
+      });
+      if(changed){ try{ save(normalized); }catch(e){} }
+      return normalized;
     }catch(e){return []}
   }
   function save(data){ localStorage.setItem(KEY, JSON.stringify(data)); }
@@ -124,133 +191,221 @@
   }
 
   function render(month){
-    const data = load();
-    const filtered = month ? data.filter(s => s.date.startsWith(month)) : data;
+    const allData = load();
+    console.debug('render() called. total records:', allData.length, 'month:', month, 'statusFilter:', filterStatus?.value);
+    const data = allData;
+    const monthFiltered = month ? data.filter(s => s.date.startsWith(month)) : data;
+    const statusFilter = filterStatus?.value || 'Todos';
+    const filtered = (statusFilter && statusFilter !== 'Todos') ? monthFiltered.filter(s => (s.status||'Pendente') === statusFilter) : monthFiltered;
     tableBody.innerHTML = '';
     let totalCount = 0, revenue = 0;
     filtered.forEach((s, idx) =>{
-      const tr = document.createElement('tr');
-      const total = Number(s.price) * Number(s.qty);
-      totalCount += Number(s.qty);
-      revenue += total;
-      tr.innerHTML = `<td>${s.date}</td><td>${s.vehicle||''}</td><td>${s.brand||''}</td><td>R$ ${formatMoney(s.price)}</td><td>${s.qty}</td><td>${s.bdc||'Não'}</td><td>${s.captacao||'Não'}</td><td>${s.plateSold||''}</td><td>${s.plateCaptured||''}</td><td>${s.client||''}</td><td>${s.days||''}</td><td>${s.payment||''}</td><td>${s.fipe||''}</td><td>${s.seller}</td><td>R$ ${formatMoney(total)}</td><td><button data-idx="${idx}" class="btn btn--muted remove">Remover</button></td>`;
-      tableBody.appendChild(tr);
-    });
-    summaryCount.textContent = totalCount;
-    summaryTotal.textContent = formatMoney(revenue);
-    summaryAvg.textContent = totalCount ? formatMoney(revenue/totalCount) : '0,00';
-    // attach remove handlers
-    document.querySelectorAll('.remove').forEach(b=>b.addEventListener('click', e=>{
-      const idx = Number(e.target.dataset.idx);
-      const d = load();
-      // need to remove the correct item across full dataset: if month filtered, idx refers to filtered array
-      if(month){
-        const filteredAll = d.filter(s=>s.date.startsWith(month));
-        const item = filteredAll[idx];
-        const pos = d.findIndex(x => x === item);
-        if(pos>=0) d.splice(pos,1);
-      } else d.splice(idx,1);
-      save(d);
-      render(month);
-    }));
-  }
-
-  // popula datalist de veículos quando a marca muda
-  function populateVehiclesForBrand(brand){
-    vehicleDatalist.innerHTML = '';
-    const models = brandModels[brand];
-    if(!models || !models.length) return;
-    // mostrar apenas os modelos mais comuns (top 6)
-    const topModels = models.slice(0,6);
-    topModels.forEach(m => {
-      const opt = document.createElement('option');
-      opt.value = m;
-      vehicleDatalist.appendChild(opt);
-    });
-  }
-
-  inputBrand?.addEventListener('change', (e)=>{
-    populateVehiclesForBrand(e.target.value);
-  });
-
-  form.addEventListener('submit', e =>{
-    e.preventDefault();
-    // garantir formatação do preço antes de salvar
-    try{ inputPrice.value = formatMoney(parseMoneyFromInput(inputPrice.value)); }catch(e){}
-    const date = inputDate.value;
-    const vehicle = inputVehicle.value.trim();
-    const brand = inputBrand.value.trim();
-    const price = parseMoneyFromInput(inputPrice.value);
-    const qty = parseInt(inputQty.value) || 1;
-    const seller = inputSeller.value.trim();
-    const bdc = inputBdc.value || 'Não';
-    const captacao = inputCaptacao.value || 'Não';
-    const placa = inputPlaca?.value || '';
-    const plateSold = inputPlateSold.value.trim() || '';
-    const plateCaptured = inputPlateCaptured.value.trim() || '';
-    const client = inputClient.value.trim() || '';
-    const days = parseInt(inputDays.value) || 0;
-    const payment = inputPayment.value || '';
-    const fipe = parseFloat(inputFipe.value) || 0;
-    if(!date||!brand||!seller) return alert('Preencha data, marca e vendedor.');
-    const data = load();
-    data.push({ date, vehicle, brand, price, qty, seller, bdc, captacao, placa, plateSold, plateCaptured, client, days, payment, fipe });
-    save(data);
-    form.reset();
-    render(monthInput.value);
-  });
-
-  clearBtn.addEventListener('click', ()=>{
-    if(!confirm('Apagar todos os registros?')) return;
-    localStorage.removeItem(KEY);
-    render(monthInput.value);
-  });
-
-  monthInput.addEventListener('change', ()=> render(monthInput.value));
-
-  // definir mês atual como padrão
-  const now = new Date();
-  monthInput.value = now.toISOString().slice(0,7);
-
-  // colocar ano atual no rodapé
-  document.getElementById('year').textContent = now.getFullYear();
-
-  // tentar aplicar imagem de fundo dinâmica (se existir na pasta ../imagens)
-  (function applyBackground(){
-    try{
-      const candidate = '../imagens/people-meeting-seminar-office-concept-1.jpg';
-      fetch(candidate, { method: 'HEAD' }).then(res => {
-        if(res.ok){
-          document.body.style.backgroundImage = `url('${candidate}')`;
-          document.body.style.backgroundSize = 'cover';
-          document.body.style.backgroundPosition = 'center';
+      console.debug('render item', idx, s);
+       const tr = document.createElement('tr');
+       const total = Number(s.price) * Number(s.qty);
+       totalCount += Number(s.qty);
+       revenue += total;
+       // renderizar célula de status como select editável
+       const statusVal = s.status || 'Pendente';
+       // adicionar classe para colorir o status cell
+       const statusClass = statusVal === 'Faturado' ? 'status-faturado' : (statusVal === 'Entregue' ? 'status-entregue' : 'status-pendente');
+      // garantir que cada campo existirá como string antes de montar o HTML
+      const dateText = s.date || '';
+      const vehicleText = s.vehicle || '';
+      const brandText = s.brand || '';
+      const priceText = 'R$ ' + formatMoney(s.price);
+      const qtyText = s.qty != null ? String(s.qty) : '';
+      const bdcText = s.bdc || 'Não';
+      const captacaoText = s.captacao || 'Não';
+      const plateSoldText = s.plateSold || '';
+      const plateCapturedText = s.plateCaptured || '';
+      const clientText = s.client || '';
+      const daysText = s.days != null ? String(s.days) : '';
+      const paymentText = s.payment || '';
+      const fipeText = s.fipe != null ? String(s.fipe) : '';
+      const sellerText = s.seller || '';
+      const totalText = 'R$ ' + formatMoney(total);
+       tr.innerHTML = `<td>${dateText}</td><td>${vehicleText}</td><td>${brandText}</td><td>${priceText}</td><td>${qtyText}</td><td>${bdcText}</td><td>${captacaoText}</td><td>${plateSoldText}</td><td>${plateCapturedText}</td><td>${clientText}</td><td>${daysText}</td><td>${paymentText}</td><td>${fipeText}</td><td>${sellerText}</td><td class="status-cell ${statusClass}"><select class="status-select" data-id="${s.id}"><option${statusVal==='Pendente'?' selected':''}>Pendente</option><option${statusVal==='Faturado'?' selected':''}>Faturado</option><option${statusVal==='Entregue'?' selected':''}>Entregue</option></select></td><td>${totalText}</td><td><button type="button" data-id="${s.id}" class="btn btn--muted remove">Remover</button></td>`;
+       // anexar a linha ao tbody antes de registrar listeners
+       tableBody.appendChild(tr);
+       // incluir data-idx para fallback quando não houver id consistente
+        // configurar botão Remover diretamente na linha (mais robusto que seleção global depois)
+        const removeBtn = tr.querySelector('.remove');
+        if(removeBtn){
+          removeBtn.setAttribute('type','button');
+          // garantir índice para fallback em registros antigos
+          removeBtn.dataset.idx = String(idx);
+          removeBtn.addEventListener('click', function(e){
+            const btn = e.currentTarget;
+            const id = btn.dataset.id;
+            const idxAttr = btn.dataset.idx;
+            const d = load();
+            if(!confirm('Remover este registro?')) return;
+            // remover por id
+            if(id){
+              const pos = d.findIndex(x => x.id === id);
+              if(pos >= 0){ d.splice(pos,1); save(d); render(month); return; }
+            }
+            // fallback por índice no filtro
+            if(typeof idxAttr !== 'undefined'){
+              const idxNum = Number(idxAttr);
+              if(month){
+                const filteredAll = d.filter(s=>s.date.startsWith(month));
+                const item = filteredAll[idxNum];
+                const pos = d.indexOf(item);
+                if(pos >= 0){ d.splice(pos,1); save(d); render(month); return; }
+              } else {
+                if(!isNaN(idxNum) && idxNum >= 0 && idxNum < d.length){ d.splice(idxNum,1); save(d); render(month); return; }
+              }
+            }
+            // última tentativa: comparar conteúdo da linha (data, marca, preço, vendedor)
+            const trRow = btn.closest('tr');
+            if(trRow){
+              const cells = Array.from(trRow.children).map(td=>td.textContent.trim());
+              const pos2 = d.findIndex(item => {
+                return cells[0] === (item.date||'') &&
+                       cells[2] === (item.brand||'') &&
+                       cells[3].replace(/^R\$\s*/,'') === formatMoney(item.price).toString() &&
+                       cells[13] === (item.seller||'');
+              });
+              if(pos2 >= 0){ d.splice(pos2,1); save(d); render(month); return; }
+            }
+            console.warn('Registro para remoção não localizado.');
+          });
         }
-      }).catch(()=>{});
-    }catch(e){}
-  })();
-
-  // botão exportar CSV
-  function exportCSV(month){
-    const data = load();
-    const filtered = month ? data.filter(s => s.date.startsWith(month)) : data;
-    if(!filtered.length) return alert('Nenhum registro para exportar neste período.');
-    const rows = [ ['Data','Veículo','Marca','Preço','Quantidade','Vendedor','Total'] ];
-    filtered.forEach(r=> rows.push([r.date, r.vehicle, r.brand, r.price, r.qty, r.seller, (r.price*r.qty).toFixed(2)]));
-    const csv = rows.map(r=> r.map(cell=> '"'+String(cell).replace(/"/g,'""')+'"').join(',')).join('\n');
-    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `vendas-${month||'todas'}.csv`;
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-    URL.revokeObjectURL(url);
+        // anexar listener para alterar status após lançamento
+        const sel = tr.querySelector('.status-select');
+        if(sel){
+          sel.addEventListener('change', (e)=>{
+            const newStatus = e.target.value;
+            const id = e.target.dataset.id;
+            const all = load();
+            const pos = all.findIndex(x => x.id === id);
+            if(pos >= 0){ all[pos].status = newStatus; save(all); render(month); }
+          });
+        }
+        // se houver observações, adicionar uma linha abaixo com colspan para exibir o texto
+        if(s.notes){
+          const trNotes = document.createElement('tr');
+          trNotes.className = 'sale-notes-row';
+          trNotes.innerHTML = `<td colspan="17" class="sale-notes-cell">${String(s.notes).replace(/\n/g,'<br>')}</td>`;
+          tableBody.appendChild(trNotes);
+        }
+      });
+    summaryCount.textContent = totalCount;
+    if(summaryTotal) summaryTotal.textContent = formatMoney(revenue);
+    if(summaryAvg) summaryAvg.textContent = totalCount ? formatMoney(revenue/totalCount) : '0,00';
   }
 
-  document.getElementById('export-csv')?.addEventListener('click', ()=> exportCSV(monthInput.value));
+  // aplicar filtro quando o select de status mudar
+  filterStatus?.addEventListener('change', ()=> render(monthInput.value));
 
-  render(monthInput.value);
+   // popula datalist de veículos quando a marca muda
+   function populateVehiclesForBrand(brand){
+     vehicleDatalist.innerHTML = '';
+     const models = brandModels[brand];
+     if(!models || !models.length) return;
+     // mostrar apenas os modelos mais comuns (top 6)
+     const topModels = models.slice(0,6);
+     topModels.forEach(m => {
+       const opt = document.createElement('option');
+       opt.value = m;
+       vehicleDatalist.appendChild(opt);
+     });
+   }
+
+   inputBrand?.addEventListener('change', (e)=>{
+     populateVehiclesForBrand(e.target.value);
+   });
+
+   form.addEventListener('submit', e =>{
+     e.preventDefault();
+     // garantir formatação do preço antes de salvar
+     try{ inputPrice.value = formatMoney(parseMoneyFromInput(inputPrice.value)); }catch(e){}
+     // ler valores diretamente do DOM para evitar referências inválidas
+     const date = (document.getElementById('sale-date')?.value || '').trim();
+     const vehicle = (document.getElementById('sale-vehicle')?.value || '').trim();
+     const brand = (document.getElementById('sale-brand')?.value || '').trim();
+     const price = parseMoneyFromInput(document.getElementById('sale-price')?.value || '0');
+     const qty = parseInt(document.getElementById('sale-qty')?.value) || 1;
+     const seller = (document.getElementById('sale-seller')?.value || '').trim();
+     const notes = (document.getElementById('sale-notes')?.value || '').trim();
+     const status = 'Pendente';
+     const bdc = (document.getElementById('sale-bdc')?.value) || 'Não';
+     const captacao = (document.getElementById('sale-captacao')?.value) || 'Não';
+     const placa = (document.getElementById('sale-placa')?.value) || '';
+     const plateSold = (document.getElementById('sale-plate-sold')?.value || '').trim();
+     const plateCaptured = (document.getElementById('sale-plate-captured')?.value || '').trim();
+     const client = (document.getElementById('sale-client')?.value || '').trim();
+     const days = parseInt(document.getElementById('sale-days')?.value) || 0;
+     const payment = (document.getElementById('sale-payment')?.value) || '';
+     const fipe = parseFloat(document.getElementById('sale-fipe')?.value) || 0;
+     if(!date||!brand||!seller) return alert('Preencha data, marca e vendedor.');
+     const data = load();
+     // criar id único para permitir operações confiáveis
+     const id = Date.now().toString(36) + '-' + Math.random().toString(36).slice(2,8);
+     const record = { id, date, vehicle, brand, price, qty, seller, bdc, captacao, placa, plateSold, plateCaptured, client, days, payment, fipe, notes, status };
+     console.debug('Saving record:', record);
+     data.push(record);
+     save(data);
+     form.reset();
+     // após salvar, renderizar mês atualmente selecionado (ou mês do registro se quiser)
+     render(monthInput.value);
+   });
+
+   clearBtn.addEventListener('click', ()=>{
+     if(!confirm('Apagar todos os registros?')) return;
+     localStorage.removeItem(KEY);
+     render(monthInput.value);
+   });
+
+   monthInput.addEventListener('change', ()=> render(monthInput.value));
+
+   // definir mês atual como padrão
+   const now = new Date();
+   monthInput.value = now.toISOString().slice(0,7);
+
+   // colocar ano atual no rodapé
+   document.getElementById('year').textContent = now.getFullYear();
+
+   // tentar aplicar imagem de fundo dinâmica (se existir na pasta ../imagens)
+   (function applyBackground(){
+     try{
+       const candidate = '../imagens/people-meeting-seminar-office-concept-1.jpg';
+       fetch(candidate, { method: 'HEAD' }).then(res => {
+         if(res.ok){
+           document.body.style.backgroundImage = `url('${candidate}')`;
+           document.body.style.backgroundSize = 'cover';
+           document.body.style.backgroundPosition = 'center';
+         }
+       }).catch(()=>{});
+     }catch(e){}
+   })();
+
+   // botão exportar CSV
+   function exportCSV(month){
+    const data = load();
+    const monthFiltered = month ? data.filter(s => s.date.startsWith(month)) : data;
+    const statusFilter = filterStatus?.value || 'Todos';
+    const filtered = (statusFilter && statusFilter !== 'Todos') ? monthFiltered.filter(s => (s.status||'Pendente') === statusFilter) : monthFiltered;
+     if(!filtered.length) return alert('Nenhum registro para exportar neste período.');
+     const rows = [ ['Data','Veículo','Marca','Preço','Quantidade','Vendedor','Status','Total','Observações'] ];
+     filtered.forEach(r=> rows.push([r.date, r.vehicle, r.brand, r.price, r.qty, r.seller, r.status || 'Pendente', (r.price*r.qty).toFixed(2), r.notes || '']));
+     const csv = rows.map(r=> r.map(cell=> '"'+String(cell).replace(/"/g,'""')+'"').join(',')).join('\n');
+     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+     const url = URL.createObjectURL(blob);
+     const a = document.createElement('a');
+     a.href = url;
+     a.download = `vendas-${month||'todas'}.csv`;
+     document.body.appendChild(a);
+     a.click();
+     a.remove();
+     URL.revokeObjectURL(url);
+   }
+
+   document.getElementById('export-csv')?.addEventListener('click', ()=> exportCSV(monthInput.value));
+
+   render(monthInput.value);
 
   // formatar campo price ao perder foco (format br)
   inputPrice.addEventListener('blur', (e)=>{

@@ -407,53 +407,21 @@
 
    render(monthInput.value);
 
-  // formatar campo price ao perder foco (format br)
-  inputPrice.addEventListener('blur', (e)=>{
-    try{
-      const v = parseMoneyFromInput(e.target.value);
-      e.target.value = formatMoney(v);
-      console.debug('price formatted on blur:', e.target.value);
-    }catch(e){}
-  });
-
-  // também formatar ao mudar (change) e ao pressionar Enter (substitui envio imediato)
-  inputPrice.addEventListener('change', (e)=>{
-    try{ e.target.value = formatMoney(parseMoneyFromInput(e.target.value)); }catch(e){}
-  });
-  inputPrice.addEventListener('keydown', (e)=>{
-    if(e.key === 'Enter'){
-      e.preventDefault();
-      try{ e.target.value = formatMoney(parseMoneyFromInput(e.target.value)); }catch(err){}
-      // move focus para próximo elemento do formulário
-      const formElements = Array.from(form.querySelectorAll('input, select, textarea, button'));
-      const idx = formElements.indexOf(e.target);
-      if(idx >= 0 && idx < formElements.length - 1) formElements[idx+1].focus();
-    }
-  });
-
-  // Formatação em tempo real com preservação do cursor
-  inputPrice.addEventListener('input', (e)=>{
-    try{
-      const el = e.target;
-      const old = String(el.value);
-      const caret = el.selectionStart || old.length;
-      // contar dígitos à direita do cursor (0-9)
-      const rightDigits = (old.slice(caret).match(/\d/g) || []).length;
-      const n = parseMoneyFromInput(old);
-      const formatted = formatMoney(n);
-      if(formatted === old) return;
-      el.value = formatted;
-      // posicionar o cursor de forma que haja same number of digits à direita
-      let pos = formatted.length;
-      let count = 0;
-      for(let i = formatted.length - 1; i >= 0; i--){
-        if(/\d/.test(formatted[i])) count++;
-        if(count === rightDigits){ pos = i; break; }
+  // também formatar ao mudar (change) e ao pressionar Enter (comportamento simples)
+  if(inputPrice){
+    inputPrice.addEventListener('blur', (e)=>{ try{ const v = parseMoneyFromInput(e.target.value); e.target.value = formatMoney(v); }catch(e){} });
+    inputPrice.addEventListener('change', (e)=>{ try{ e.target.value = formatMoney(parseMoneyFromInput(e.target.value)); }catch(e){} });
+    inputPrice.addEventListener('keydown', (e)=>{
+      if(e.key === 'Enter'){
+        e.preventDefault();
+        try{ e.target.value = formatMoney(parseMoneyFromInput(e.target.value)); }catch(err){}
+        // move focus para próximo elemento do formulário
+        const formElements = Array.from(form.querySelectorAll('input, select, textarea, button'));
+        const idx = formElements.indexOf(e.target);
+        if(idx >= 0 && idx < formElements.length - 1) formElements[idx+1].focus();
       }
-      // colocar cursor logo após o dígito encontrado
-      try{ el.setSelectionRange(Math.min(pos+1, formatted.length), Math.min(pos+1, formatted.length)); }catch(e){}
-    }catch(err){ console.error('Erro formatação em tempo real:', err); }
-  });
+    });
+  }
 
   // limpeza rápida do campo marca
   document.querySelector('.clear-brand')?.addEventListener('click', ()=>{
@@ -500,28 +468,6 @@
           if(idx >= 0 && idx < formElements.length - 1) formElements[idx+1].focus();
         }
       });
-      // Formatação em tempo real com preservação do cursor (fallback)
-      ip.addEventListener('input', (e)=>{
-        try{
-          const el = e.target;
-          const old = String(el.value);
-          const caret = el.selectionStart || old.length;
-          const rightDigits = (old.slice(caret).match(/\d/g) || []).length;
-          const n = parseMoneyFromInput(old);
-          const formatted = formatMoney(n);
-          if(formatted === old) return;
-          el.value = formatted;
-          let pos = formatted.length;
-          let count = 0;
-          for(let i = formatted.length - 1; i >= 0; i--){
-            if(/\d/.test(formatted[i])) count++;
-            if(count === rightDigits){ pos = i; break; }
-          }
-          try{ el.setSelectionRange(Math.min(pos+1, formatted.length), Math.min(pos+1, formatted.length)); }catch(e){}
-        }catch(err){ console.error('Erro formatação em tempo real (DOMContentLoaded):', err); }
-      });
-      // paste
-      ip.addEventListener('paste', (e)=>{ setTimeout(()=>{ try{ const el = e.target; const v = parseMoneyFromInput(el.value); el.value = formatMoney(v);}catch(e){} },0); });
       console.info('Listeners de preço anexados após DOMContentLoaded');
     });
   }

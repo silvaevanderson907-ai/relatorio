@@ -225,7 +225,7 @@
       const fipeText = s.fipe != null ? String(s.fipe) : '';
       const sellerText = s.seller || '';
       const totalText = 'R$ ' + formatMoney(total);
-       tr.innerHTML = `<td>${dateText}</td><td>${vehicleText}</td><td>${brandText}</td><td>${priceText}</td><td>${qtyText}</td><td>${bdcText}</td><td>${captacaoText}</td><td>${plateSoldText}</td><td>${plateCapturedText}</td><td>${clientText}</td><td>${daysText}</td><td>${paymentText}</td><td>${fipeText}</td><td>${sellerText}</td><td class="status-cell ${statusClass}"><select class="status-select" data-id="${s.id}"><option${statusVal==='Pendente'?' selected':''}>Pendente</option><option${statusVal==='Faturado'?' selected':''}>Faturado</option><option${statusVal==='Entregue'?' selected':''}>Entregue</option></select></td><td>${totalText}</td><td><button type="button" data-id="${s.id}" class="btn btn--muted remove">Remover</button></td>`;
+       tr.innerHTML = `<td>${dateText}</td><td>${vehicleText}</td><td>${brandText}</td><td>${priceText}</td><td>${qtyText}</td><td>${bdcText}</td><td>${captacaoText}</td><td>${plateSoldText}</td><td>${plateCapturedText}</td><td>${clientText}</td><td>${daysText}</td><td>${paymentText}</td><td>${fipeText}</td><td>${sellerText}</td><td class="status-cell ${statusClass}"><select class="status-select" data-id="${s.id}"><option${statusVal==='Direcionado'?' selected':''}>Direcionado</option><option${statusVal==='Faturado'?' selected':''}>Faturados</option><option${statusVal==='Entregue'?' selected':''}>Entregue</option></select></td><td>${totalText}</td><td><button type="button" data-id="${s.id}" class="btn btn--muted remove">Remover</button></td>`;
        // anexar a linha ao tbody antes de registrar listeners
        tableBody.appendChild(tr);
        // incluir data-idx para fallback quando não houver id consistente
@@ -330,7 +330,7 @@
      const qty = parseInt(document.getElementById('sale-qty')?.value) || 1;
      const seller = (document.getElementById('sale-seller')?.value || '').trim();
      const notes = (document.getElementById('sale-notes')?.value || '').trim();
-     const status = 'Pendente';
+     const status = 'Direcionado';
      const bdc = (document.getElementById('sale-bdc')?.value) || 'Não';
      const captacao = (document.getElementById('sale-captacao')?.value) || 'Não';
      const placa = (document.getElementById('sale-placa')?.value) || '';

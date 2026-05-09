@@ -1,0 +1,109 @@
+(function(){
+  const KEY = 'car-sales-v1';
+  const form = document.getElementById('sale-form');
+  const inputDate = document.getElementById('sale-date');
+  const inputBrand = document.getElementById('sale-brand');
+  const inputPrice = document.getElementById('sale-price');
+  const inputQty = document.getElementById('sale-qty');
+  const inputSeller = document.getElementById('sale-seller');
+  const inputBdc = document.getElementById('sale-bdc');
+  const inputCaptacao = document.getElementById('sale-captacao');
+  const inputPlaca = document.getElementById('sale-placa');
+  const inputPlateSold = document.getElementById('sale-plate-sold');
+  const inputPlateCaptured = document.getElementById('sale-plate-captured');
+  const inputVehicle = document.getElementById('sale-vehicle');
+  const inputClient = document.getElementById('sale-client');
+  const inputDays = document.getElementById('sale-days');
+  const inputPayment = document.getElementById('sale-payment');
+  const inputFipe = document.getElementById('sale-fipe');
+  const clearBtn = document.getElementById('clear-all');
+  const monthInput = document.getElementById('report-month');
+  const vehicleDatalist = document.getElementById('vehicle-list');}
+
+  const summaryCount = document.getElementById('summary-count');
+  const summaryTotal = document.getElementById('summary-total');
+  const summaryAvg = document.getElementById('summary-avg');
+  const tableBody = document.querySelector('#sales-table tbody');
+
+  // mapeamento simples de marcas -> modelos (amostra); pode ser estendido
+  const brandModels = {
+    'Toyota': ['Corolla','Corolla Altis','Corolla XEI','Hilux','Yaris','Etios','RAV4','SW4','Prius'],
+    'Volkswagen': ['Gol','Polo','Virtus','T-Cross','Nivus','Tiguan','Golf','Saveiro'],
+    'Chevrolet': ['Onix','Cruze','Tracker','S10','Montana','Spin'],
+    'Fiat': ['Uno','Mobi','Argo','Toro','Strada','Cronos','Fiat 500'],
+    'Ford': ['Ka','EcoSport','Ranger','Fiesta'],
+    'Renault': ['Logan','Sandero','Duster','Captur','Kwid'],
+    'Honda': ['Civic','Fit','HR-V','City','WR-V'],
+    'Hyundai': ['HB20','Creta','Tucson','Santa Fe','Elantra'],
+    'Nissan': ['Kicks','Versa','Sentra','Frontier'],
+    'Jeep': ['Renegade','Compass','Wrangler'],
+    'Peugeot': ['208','2008','3008'],
+    'Citroën': ['C3','C4 Cactus','Aircross'],
+    'Mercedes-Benz': ['C180','C200','GLA'],
+    'BMW': ['320i','X1','X3'],
+    'Audi': ['A3','Q3','A4']
+  };
+
+  function load(){
+    try{
+      const raw = localStorage.getItem(KEY);
+      return raw ? JSON.parse(raw) : [];
+    }catch(e){return []}
+  }
+  function save(data){ localStorage.setItem(KEY, JSON.stringify(data)); }
+
+  // formata valores em padrão brasileiro (ex.: 185.900,00)
+  function formatMoney(v){
+    const n = Number(v) || 0;
+    return new Intl.NumberFormat('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(n);
+  }
+
+  // converte entrada do usuário (aceita '185.900,00' ou '185900.00' ou '185900') para número
+  function parseMoneyFromInput(raw){
+    if (typeof raw === 'number') return raw;
+    try{
+      let s = String(raw).trim();
+      if(!s) return 0;
+      s = s.replace(/[^0-9,.-]/g, '');
+      if (s.indexOf(',') !== -1 && s.indexOf('.') !== -1) {
+        s = s.replace(/\./g, '');
+        s = s.replace(/,/g, '.');
+      } else if (s.indexOf(',') !== -1 && s.indexOf('.') === -1) {
+        s = s.replace(/,/g, '.');
+      }
+      const n = parseFloat(s);
+      return isNaN(n) ? 0 : n;
+    }catch(e){return 0}
+  }
+
+  function render(month){
+    const data = load();
+    const filtered = month ? data.filter(s => s.date.startsWith(month)) : data;
+    tableBody.innerHTML = '';
+    let totalCount = 0, revenue = 0;
+    filtered.forEach((s, idx) =>{
+      const tr = document.createElement('tr');
+      const total = Number(s.price) * Number(s.qty);
+      totalCount += Number(s.qty);
+      revenue += total;
+      tr.innerHTML = `<td>${s.date}</td><td>${s.vehicle||''}</td><td>${s.brand||''}</td><td>R$ ${formatMoney(s.price)}</td><td>${s.qty}</td><td>${s.bdc||'Não'}</td><td>${s.captacao||'Não'}</td><td>${s.plateSold||''}</td><td>${s.plateCaptured||''}</td><td>${s.client||''}</td><td>${s.days||''}</td><td>${s.payment||''}</td><td>${s.fipe||''}</td><td>${s.seller}</td><td>R$ ${formatMoney(total)}</td><td><button data-idx="${idx}" class="btn btn--muted remove">Remover</button></td>`;
+      tableBody.appendChild(tr);
+    });
+    summaryCount.textContent = totalCount;
+    summaryTotal.textContent = formatMoney(revenue);
+    summaryAvg.textContent = totalCount ? formatMoney(revenue/totalCount) : '0,00';
+    // attach remove handlers
+    document.querySelectorAll('.remove').forEach(b=>b.addEventListener('click', e=>{
+      const idx = Number(e.target.dataset.idx);
+      const d = load();
+      // need to remove the correct item across full dataset: if month filtered, idx refers to filtered array
+      if(month){
+        const filteredAll = d.filter(s=>s.date.startsWith(month));
+        const item = filteredAll[idx];
+        const pos = d.findIndex(x => x === item);
+        if(pos>=0) d.splice(pos,1);
+      } else d.splice(idx,1);
+      save(d);
+      render(month);
+    }));
+  }

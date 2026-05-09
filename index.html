@@ -160,14 +160,31 @@
       <label>Escolher mês
         <input type="month" id="report-month">
       </label>
-      <label>Filtrar por status
-        <select id="filter-status" aria-label="Filtrar por status">
-          <option value="Todos">Todos</option>
-          <option value="Pendente">Direcionados</option>
-          <option value="Faturado">Faturados</option>
-          <option value="Entregue">Entregues</option>
-        </select>
-      </label>
+      <div class="filter-group">
+        <label>Filtrar por status
+          <select id="filter-status" aria-label="Filtrar por status">
+            <option value="Todos">Todos</option>
+            <option value="Pendente">Direcionados</option>
+            <option value="Faturado">Faturados</option>
+            <option value="Entregue">Entregues</option>
+          </select>
+        </label>
+        <label>Filtrar por vendedor
+          <select id="filter-seller" aria-label="Filtrar por vendedor">
+            <option value="Todos">Todos os vendedores</option><option value="Fabia">Fabia</option>
+            <option value="Romulo">Romulo</option>
+            <option value="Thaywre">Thaywre</option>
+            <option value="Matheus">Matheus</option>
+            <option value="Saulo">Saulo</option>
+          </select>
+        </label>
+      </div>
+
+      <div id="seller-stats" class="seller-stats-container">
+        <h3>Vendas por vendedor</h3>
+        <div id="seller-stats-content"></div>
+      </div>
+
       <div class="summary">
         <p>Total de vendas: <strong id="summary-count">0</strong></p>
       </div>

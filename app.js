@@ -21,6 +21,9 @@
   const monthInput = document.getElementById('report-month');
   const vehicleDatalist = document.getElementById('vehicle-list');
   const filterStatus = document.getElementById('filter-status');
+  const filterSeller = document.getElementById('filter-seller');
+  const sellerStatsContainer = document.getElementById('seller-stats');
+  const sellerStatsContent = document.getElementById('seller-stats-content');
 
   // formatação do campo de preço: implementar comportamento simples (listeners anexados mais abaixo)
 
@@ -160,13 +163,65 @@
     }catch(e){return 0}
   }
 
+  function updateSellerFilter(data){
+    // não sobrescrever os vendedores do HTML, apenas garantir que todos estejam presentes
+    const sellers = [...new Set(data.map(s => (s.seller || 'Sem vendedor')))].sort();
+    
+    // adicionar apenas vendedores que não estão já no select
+    const existingOptions = Array.from(filterSeller.options).map(opt => opt.value);
+    sellers.forEach(seller => {
+      if(!existingOptions.includes(seller)){
+        const opt = document.createElement('option');
+        opt.value = seller;
+        opt.textContent = seller;
+        filterSeller.appendChild(opt);
+      }
+    });
+  }
+
   function render(month){
     const allData = load();
-    console.debug('render() called. total records:', allData.length, 'month:', month, 'statusFilter:', filterStatus?.value);
+    console.debug('render() called. total records:', allData.length, 'month:', month, 'statusFilter:', filterStatus?.value, 'sellerFilter:', filterSeller?.value);
     const data = allData;
     const monthFiltered = month ? data.filter(s => s.date.startsWith(month)) : data;
     const statusFilter = filterStatus?.value || 'Todos';
-    const filtered = (statusFilter && statusFilter !== 'Todos') ? monthFiltered.filter(s => (s.status||'Pendente') === statusFilter) : monthFiltered;
+    const sellerFilter = filterSeller?.value || 'Todos';
+    
+    // aplicar filtro de status
+    let filtered = (statusFilter && statusFilter !== 'Todos') ? monthFiltered.filter(s => (s.status||'Pendente') === statusFilter) : monthFiltered;
+    
+    // aplicar filtro de vendedor
+    filtered = (sellerFilter && sellerFilter !== 'Todos') ? filtered.filter(s => (s.seller||'') === sellerFilter) : filtered;
+    
+    // calcular estatísticas de vendedor
+    const sellerStats = {};
+    monthFiltered.forEach(s => {
+      const seller = s.seller || 'Sem vendedor';
+      if(!sellerStats[seller]) sellerStats[seller] = 0;
+      sellerStats[seller] += Number(s.qty) || 1;
+    });
+    
+    // atualizar select de vendedor com lista de vendedores únicos
+    updateSellerFilter(monthFiltered);
+    
+    // exibir estatísticas de vendedor se houver dados
+    if(Object.keys(sellerStats).length > 0){
+      sellerStatsContainer.classList.add('active');
+      sellerStatsContent.innerHTML = '';
+      Object.entries(sellerStats).sort((a,b) => b[1] - a[1]).forEach(([seller, count]) => {
+        const card = document.createElement('div');
+        card.className = 'seller-stat-card';
+        card.innerHTML = `<div class="seller-stat-name">${seller}</div><div class="seller-stat-count">${count}</div><div class="seller-stat-label">carro${count !== 1 ? 's' : ''}</div>`;
+        card.addEventListener('click', () => {
+          filterSeller.value = seller;
+          render(month);
+        });
+        sellerStatsContent.appendChild(card);
+      });
+    } else {
+      sellerStatsContainer.classList.remove('active');
+    }
+    
     tableBody.innerHTML = '';
     let totalCount = 0, revenue = 0;
     filtered.forEach((s, idx) =>{
@@ -267,8 +322,9 @@
     if(summaryAvg) summaryAvg.textContent = totalCount ? formatMoney(revenue/totalCount) : '0,00';
   }
 
-  // aplicar filtro quando o select de status mudar
+  // aplicar filtro quando o select de status ou vendedor mudar
   filterStatus?.addEventListener('change', ()=> render(monthInput.value));
+  filterSeller?.addEventListener('change', ()=> render(monthInput.value));
 
    // popula datalist de veículos quando a marca muda
    function populateVehiclesForBrand(brand){

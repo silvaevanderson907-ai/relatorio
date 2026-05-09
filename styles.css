@@ -331,6 +331,21 @@ tbody tr:hover{background:linear-gradient(90deg, rgba(179,0,0,0.02), rgba(179,0,
 /* tornar o select de filtro visualmente alinhado com o input month */
 .report-section > label select#filter-status{margin-left:8px;padding:6px 8px;border-radius:8px;border:1px solid #e6edf2;background:#fff}
 
+/* filtros de status e vendedor */
+.filter-group{display:flex;gap:15px;margin-bottom:15px;flex-wrap:wrap}
+.filter-group label{display:flex;flex-direction:column;gap:5px;font-weight:600;font-size:14px}
+.filter-group select{padding:8px 12px;border:1px solid #e6edf2;border-radius:6px;background:white;color:var(--text);cursor:pointer;font-size:14px;min-width:200px}
+
+/* painel de estatísticas de vendedor */
+.seller-stats-container{display:none !important}
+.seller-stats-container.active{display:block !important}
+#seller-stats-content{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
+.seller-stat-card{background:white;padding:12px;border-radius:6px;border:1px solid #d0d7de;text-align:center;transition:transform 0.2s ease,box-shadow 0.2s ease;cursor:pointer}
+.seller-stat-card:hover{transform:translateY(-2px);box-shadow:0 6px 16px rgba(9,105,218,0.15)}
+.seller-stat-name{font-weight:600;font-size:14px;margin-bottom:5px;color:#0969da;word-break:break-word}
+.seller-stat-count{font-size:24px;font-weight:bold;color:#0969da}
+.seller-stat-label{font-size:12px;color:#666;margin-top:5px}
+
 /* ajustar célula de status para centralizar select */
 #sales-table td.status-cell{display:flex;align-items:center;justify-content:center}
 #sales-table td.status-cell select.status-select{border-radius:8px;padding:6px 8px;border:1px solid #e6edf2}

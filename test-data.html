@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Inserir Dados de Teste</title>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 20px; background: #f5f5f5; }
+    .container { max-width: 600px; margin: 0 auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+    button { padding: 10px 20px; background: #b30000; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 16px; }
+    button:hover { background: #900000; }
+    .success { color: #28a745; margin-top: 10px; }
+    .back-link { margin-top: 20px; }
+    a { color: #0969da; text-decoration: none; }
+    a:hover { text-decoration: underline; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Dados de Teste</h1>
+    <p>Clique no botão abaixo para inserir dados de teste (5 vendedores, 7 vendas em maio/2026):</p>
+    <button onclick="insertTestData()">Inserir Dados de Teste</button>
+    <div id="status"></div>
+    <div class="back-link">
+      <a href="index.html">← Voltar para o Aplicativo</a>
+    </div>
+  </div>
+
+  <script>
+    function insertTestData() {
+      const testData = [
+        {id: '1', date: '2026-05-01', brand: 'Toyota', vehicle: 'Corolla', price: 120000, qty: 1, seller: 'Fabia', status: 'Pendente', bdc: 'Não', captacao: 'Não', plateSold: 'ABC1D23', plateCaptured: '', client: 'Cliente 1', days: 5, payment: 'À vista', fipe: 0, notes: ''},
+        {id: '2', date: '2026-05-02', brand: 'Volkswagen', vehicle: 'Gol', price: 85000, qty: 1, seller: 'Romulo', status: 'Faturado', bdc: 'Não', captacao: 'Não', plateSold: 'XYZ9K87', plateCaptured: '', client: 'Cliente 2', days: 3, payment: 'À vista', fipe: 0, notes: ''},
+        {id: '3', date: '2026-05-03', brand: 'Toyota', vehicle: 'Hilux', price: 180000, qty: 1, seller: 'Fabia', status: 'Entregue', bdc: 'Sim', captacao: 'Não', plateSold: 'DEF4G56', plateCaptured: '', client: 'Cliente 3', days: 10, payment: 'Financiamento', fipe: 95, notes: ''},
+        {id: '4', date: '2026-05-04', brand: 'Chevrolet', vehicle: 'Onix', price: 75000, qty: 1, seller: 'Thaywre', status: 'Pendente', bdc: 'Não', captacao: 'Sim', plateSold: 'GHI7J01', plateCaptured: 'JKL2M34', client: 'Cliente 4', days: 2, payment: 'À vista', fipe: 0, notes: ''},
+        {id: '5', date: '2026-05-05', brand: 'Fiat', vehicle: 'Uno', price: 65000, qty: 1, seller: 'Matheus', status: 'Faturado', bdc: 'Não', captacao: 'Não', plateSold: 'NOP5Q67', plateCaptured: '', client: 'Cliente 5', days: 1, payment: 'À vista', fipe: 0, notes: ''},
+        {id: '6', date: '2026-05-06', brand: 'Ford', vehicle: 'EcoSport', price: 95000, qty: 1, seller: 'Saulo', status: 'Pendente', bdc: 'Não', captacao: 'Não', plateSold: 'RST8U90', plateCaptured: '', client: 'Cliente 6', days: 7, payment: 'Consórcio', fipe: 0, notes: ''},
+        {id: '7', date: '2026-05-07', brand: 'Toyota', vehicle: 'Corolla', price: 120000, qty: 1, seller: 'Fabia', status: 'Faturado', bdc: 'Não', captacao: 'Não', plateSold: 'VWX1Y23', plateCaptured: '', client: 'Cliente 7', days: 4, payment: 'À vista', fipe: 0, notes: ''}
+      ];
+      
+      try {
+        localStorage.setItem('car-sales-v1', JSON.stringify(testData));
+        const status = document.getElementById('status');
+        status.innerHTML = '<p class="success">✓ Dados inseridos com sucesso! Você tem 7 vendas de 5 vendedores diferentes.</p><p class="success">Vendedores: Fabia (3), Romulo (1), Thaywre (1), Matheus (1), Saulo (1)</p>';
+        setTimeout(() => {
+          window.location.href = 'index.html';
+        }, 2000);
+      } catch (e) {
+        document.getElementById('status').innerHTML = '<p style="color: red;">❌ Erro ao inserir dados: ' + e.message + '</p>';
+      }
+    }
+  </script>
+</body>
+</html>
